@@ -1,3 +1,9 @@
+---
+title: Obsidian Web Clipper × Claude Codeで技術記事の自動整理をしてみた
+category: AI
+organized_at: 2026-03-07
+---
+
 ## はじめに
 
 お疲れ様です、データ事業本部の小高です。
