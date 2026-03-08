@@ -1,0 +1,32 @@
+#!/bin/bash
+# Obsidian Web Clip 自動整理フック
+# Inbox/ に新しい .md ファイルがステージされていれば Claude Code で自動整理する
+
+INBOX_FILES=$(git diff --cached --name-only --diff-filter=A 2>/dev/null \
+  | grep "^Inbox/.*\.md$" \
+  | grep -v "\.gitkeep")
+
+if [ -z "$INBOX_FILES" ]; then
+  exit 0
+fi
+
+echo "[clip] 新しいクリップを検出しました:"
+echo "$INBOX_FILES" | sed 's/^/  /'
+echo "[clip] Claude Code で自動整理中..."
+
+# Claude Code を非インタラクティブモードで実行（git commit はさせない）
+claude -p "$(cat "$(git rev-parse --show-toplevel)/.claude/commands/organize.md") ただし git commit はしないでください。" \
+  --allowedTools "Bash,Glob,Read,Write,Edit" 2>&1
+
+EXIT_CODE=$?
+
+if [ $EXIT_CODE -eq 0 ]; then
+  # 整理後のファイル変更を再ステージ
+  git add Clips/ Inbox/ 2>/dev/null
+  echo "[clip] 整理完了。コミットを続行します。"
+else
+  echo "[clip] 自動整理に失敗しました。手動で /organize を実行してください。"
+  echo "[clip] コミットはそのまま続行します。"
+fi
+
+exit 0
